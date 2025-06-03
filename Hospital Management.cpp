@@ -256,3 +256,91 @@ void addPatientRecord() {
         cout << "Failed to add patient or visit record. An internal error occurred.\n";
     }
 }
+
+void updatePatientInfo() {
+    int id;
+    cout << "Enter patient ID to update core information: ";
+    cin >> id;
+   
+    if (cin.fail()) {
+        cout << "Invalid input. Please enter a number for ID.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    if (id <= 0) {
+        cout << "Invalid ID. Must be a positive number.\n";
+        return;
+    }
+
+    Patient* p = patients.findById(id);
+    if (!p) {
+        cout << "Patient not found.\n";
+        return;
+    }
+
+    cout << "What core patient information do you want to update?\n";
+    cout << "1. Full name\n2. Age\n3. Gender\n";
+    int choice;
+    cin >> choice;
+    
+    if (cin.fail()) {
+        cout << "Invalid input. Please enter a number for your choice.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (choice) {
+        case 1: {
+            string name;
+            cout << "Enter new full name: ";
+            getline(cin, name);
+            if (!isValidName(name)) { 
+                cout << "Invalid name. Name must contain only letters and spaces. Update failed.\n";
+                return;
+            }
+            p->fullName = name;
+            break;
+        }
+        case 2: {
+            int age;
+            cout << "Enter new age: ";
+            cin >> age;
+           
+            if (cin.fail()) {
+                cout << "Invalid input. Please enter a number for age.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                return;
+            }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if (age < 0) { 
+                cout << "Invalid age. Must be non-negative. Update failed.\n";
+                return;
+            }
+            p->age = age;
+            break;
+        }
+        case 3: {
+            char gender;
+            cout << "Enter new gender (M/F): ";
+            cin >> gender;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            gender = toupper(gender); 
+            if (gender != 'M' && gender != 'F') { 
+                cout << "Invalid gender. Please enter 'M' or 'F'. Update failed.\n";
+                return;
+            }
+            p->gender = gender;
+            break;
+        }
+        default:
+            cout << "Invalid choice.\n";
+            return;
+    }
+
+    cout << "Patient core info updated.\n";
+}
