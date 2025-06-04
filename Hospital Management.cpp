@@ -344,3 +344,96 @@ void updatePatientInfo() {
 
     cout << "Patient core info updated.\n";
 }
+void searchPatient() {
+    int choice;
+    cout << "Search by: 1 - ID, 2 - Name: ";
+    cin >> choice;
+    
+    if (cin.fail()) {
+        cout << "Invalid input. Please enter a number.\n";
+        cin.clear();
+       // cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (choice == 1) { 
+        int id;
+        cout << "Enter ID: ";
+        cin >> id;
+        
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a number for ID.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if (id <= 0) { 
+            cout << "Invalid ID. Must be a positive number.\n";
+            return;
+        }
+
+        Patient* p = patients.findById(id);
+        if (p) {
+            cout << "\n--- Patient Found (ID: " << p->id << ") ---\n";
+            cout << "Full Name: " << p->fullName << "\n";
+            cout << "Age: " << p->age << "\n";
+            cout << "Gender: " << p->gender << "\n";
+            cout << "--- Visit History ---\n";
+            if (p->visitHistory.empty()) {
+                cout << "No visit records found for this patient.\n";
+            } else {
+               
+                for (size_t i = 0; i < p->visitHistory.size(); ++i) {
+                    const Visit& v = p->visitHistory[i];
+                    cout << "  Visit " << (i + 1) << ":\n";
+                    cout << "    Date: " << v.date << "\n";
+                    cout << "    Diagnosis: " << v.diagnosis << "\n";
+                    cout << "    Doctor: " << v.assignedDoctor << "\n";
+                    cout << "    Amount: " << v.amount << "\n";
+                    cout << "    Emergency: " << (v.emergency ? "Yes" : "No") << "\n";
+                }
+            }
+            cout << "--------------------------------------\n";
+        } else {
+            cout << "Patient not found.\n";
+        }
+    } else if (choice == 2) { 
+        string name;
+        cout << "Enter full name: ";
+        getline(cin, name);
+
+        vector<Patient*> results;
+        patients.findByName(name, results); 
+        if (results.empty()) {
+            cout << "No patients found with that name.\n";
+        } else {
+            cout << "Found " << results.size() << " patient(s) with the name '" << name << "':\n";
+            // Display details for each found patient
+            for (auto* p : results) {
+                cout << "\n--- Patient Found (ID: " << p->id << ") ---\n";
+                cout << "Full Name: " << p->fullName << "\n";
+                cout << "Age: " << p->age << "\n";
+                cout << "Gender: " << p->gender << "\n";
+                cout << "--- Visit History ---\n";
+                if (p->visitHistory.empty()) {
+                    cout << "  No visit records found for this patient.\n";
+                } else {
+                    for (size_t i = 0; i < p->visitHistory.size(); ++i) {
+                        const Visit& v = p->visitHistory[i];
+                        cout << "  Visit " << (i + 1) << ":\n";
+                        cout << "    Date: " << v.date << "\n";
+                        cout << "    Diagnosis: " << v.diagnosis << "\n";
+                        cout << "    Doctor: " << v.assignedDoctor << "\n";
+                        cout << "    Amount: " << v.amount << "\n";
+                        cout << "    Emergency: " << (v.emergency ? "Yes" : "No") << "\n";
+                    }
+                }
+                cout << "--------------------------------------\n";
+            }
+        }
+    } else {
+        cout << "Invalid choice.\n";
+    }
+}
