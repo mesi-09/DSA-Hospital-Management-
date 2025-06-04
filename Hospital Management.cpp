@@ -584,3 +584,54 @@ void loadDataFromFile(const string& filename) {
     cout << "Data loaded from " << filename << ".\n";
 }
 
+int main() {
+    
+    loadDataFromFile("patients_data.csv");
+
+    while (true) {
+        cout << "\n--- Hospital Management System Menu ---\n";
+        cout << "1. Add patient (or new visit for existing patient)\n";
+        cout << "2. Search patient\n";
+        cout << "3. Update patient core info\n";
+        cout << "4. Show all records for a patient\n";
+        cout << "5. Save data\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+
+        int choice;
+        cin >> choice;
+       
+        if (cin.fail()) {
+            cout << "Invalid input. Please enter a number from the menu.\n";
+            cin.clear(); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+            continue;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+
+        switch (choice) {
+            case 1:
+                addPatientRecord();
+                break;
+            case 2:
+                searchPatient();
+                break;
+            case 3:
+                updatePatientInfo();
+                break;
+            case 4:
+                showAllRecordsForPatient();
+                break;
+            case 5:
+                saveDataToFile("patients_data.csv");
+                break;
+            case 6:
+                cout << "Exiting...\n";
+                saveDataToFile("patients_data.csv"); 
+                return 0; 
+            default:
+                cout << "Invalid choice, please try again.\n";
+        }
+    }
+    return 0; 
+}
