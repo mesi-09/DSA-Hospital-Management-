@@ -437,3 +437,150 @@ void searchPatient() {
         cout << "Invalid choice.\n";
     }
 }
+void showAllRecordsForPatient() {
+    int id;
+    cout << "Enter patient ID to show all records: ";
+    cin >> id;
+   
+    if (cin.fail()) {
+        cout << "Invalid input. Please enter a number for ID.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    if (id <= 0) {
+        cout << "Invalid ID. Must be a positive number.\n";
+        return;
+    }
+
+    Patient* p = patients.findById(id);
+    if (!p) {
+        cout << "No records found for patient ID " << id << ".\n";
+        return;
+    }
+
+    cout << "\n--- All Records for Patient ID: " << p->id << " (" << p->fullName << ") ---\n";
+    if (p->visitHistory.empty()) {
+        cout << "No visit records found for this patient.\n";
+    } else {
+       
+        for (size_t i = 0; i < p->visitHistory.size(); ++i) {
+            const Visit& v = p->visitHistory[i];
+            cout << "  Visit " << (i + 1) << ":\n";
+            cout << "    Date: " << v.date << "\n";
+            cout << "    Diagnosis: " << v.diagnosis << "\n";
+            cout << "    Doctor: " << v.assignedDoctor << "\n";
+            cout << "    Amount: " << v.amount << "\n";
+            cout << "    Emergency: " << (v.emergency ? "Yes" : "No") << "\n";
+            cout << "  --------------------------------------\n";
+        }
+    }
+    cout << "--------------------------------------\n";
+}
+
+
+void saveDataToFile(const string& filename) {
+    ofstream file(filename);
+    if (!file) {
+        cout << "Error opening file for writing.\n";
+        return;
+    }
+
+    Node* current = patients.getHead();
+    while (current) {
+        const Patient& p = current->patient;
+        
+        file << "PATIENT," << p.id << "," << p.fullName << "," << p.age << "," << p.gender << "\n";
+
+        
+        for (const auto& v : p.visitHistory) {
+            file << "VISIT," << p.id << "," << v.diagnosis << "," << v.assignedDoctor << ","
+                 << v.date << "," << v.amount << "," << (v.emergency ? "1" : "0") << "\n";
+        }
+        current = current->next;
+    }
+
+    file.close();
+    cout << "Data saved to " << filename << "\n";
+}
+
+
+void loadDataFromFile(const string& filename) {
+    ifstream file(filename);
+    if (!file) {
+        cout << "No existing data file found (" << filename << "). Starting with empty system.\n";
+        return;
+    }
+
+    string line;
+    Patient* currentPatient = nullptr; 
+    int maxId = 0; 
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string type;
+        getline(ss, type, ','); 
+
+        if (type == "PATIENT") {
+            int id, age;
+            string fullName, genderStr;
+            
+            ss >> id; ss.ignore();
+            getline(ss, fullName, ',');
+            ss >> age; ss.ignore(); 
+            getline(ss, genderStr, ',');
+
+            Patient newPatient(id, fullName, age, genderStr[0]);
+            patients.addPatient(newPatient); 
+            currentPatient = patients.findById(id); 
+
+            if (id > maxId) {
+                maxId = id;
+            }
+
+        } else if (type == "VISIT") {
+            if (!currentPatient) {
+                
+                cerr << "Error: VISIT record found without a preceding PATIENT record. Skipping.\n";
+                continue;
+            }
+            int patientIdFromFile;
+            string diagnosis, assignedDoctor, date;
+            double amount;
+            int emergencyInt;
+
+            ss >> patientIdFromFile; ss.ignore(); 
+            getline(ss, diagnosis, ',');
+            getline(ss, assignedDoctor, ',');
+            getline(ss, date, ',');
+            ss >> amount; ss.ignore(); 
+            ss >> emergencyInt; 
+
+            Visit newVisit;
+            newVisit.diagnosis = diagnosis;
+            newVisit.assignedDoctor = assignedDoctor;
+            newVisit.date = date;
+            newVisit.amount = amount;
+            newVisit.emergency = (emergencyInt == 1);
+
+            
+            if (currentPatient->id == patientIdFromFile) {
+                currentPatient->visitHistory.push_back(newVisit);
+            } else {
+                
+                Patient* targetPatient = patients.findById(patientIdFromFile);
+                if (targetPatient) {
+                    targetPatient->visitHistory.push_back(newVisit);
+                    currentPatient = targetPatient; 
+                } else {
+                    cerr << "Error: Visit for unknown patient ID " << patientIdFromFile << " encountered. Skipping.\n";
+                }
+            }
+        }
+    }
+    file.close();
+    PatientList::setNextId(maxId); 
+    cout << "Data loaded from " << filename << ".\n";
+}
+
